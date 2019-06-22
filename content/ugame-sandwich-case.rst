@@ -5,7 +5,7 @@
 :title: A sandwich case for uGame
 :tags:
 :layout: post
-:date: 2019-06-22 19:00
+:date: 2019-06-22 20:00:00 +0200
 :comments: true
 :category: blog
 :description:
