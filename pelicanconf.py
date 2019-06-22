@@ -17,7 +17,7 @@ DEFAULT_CATEGORY = 'blog'
 LANDING_PAGE_ABOUT = {'title': 'Nebensinn blog',
                       'details': """<p>Hi, I am Martin. On this blog I 
 will post updates on technology 
-that cannot be expressed as source code diffs</p>"""}
+that cannot be expressed as source code diffs.</p>"""}
 
 
 PROJECTS = [{'name': 'ugame-tetris', 'url': 'https://github.com/Logout22/ugame-tetris',
