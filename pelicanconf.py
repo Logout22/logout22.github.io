@@ -9,7 +9,7 @@ import datetime
 AUTHOR = u'Martin Unzner'
 SITENAME = u'Nebensinn blog'
 SITESUBTITLE = u''
-SITEURL = u'/'
+SITEURL = u'https://logout22.github.io/'
 DEFAULT_LANG = u'en'
 DEFAULT_CATEGORY = 'blog'
 
