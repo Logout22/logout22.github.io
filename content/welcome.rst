@@ -5,7 +5,7 @@
 :title: Welcome!
 :tags:
 :layout: post
-:date: 2019-03-24 23:55
+:date: 2019-03-24 23:55:00 +0200
 :comments: true
 :category: blog
 :description:
