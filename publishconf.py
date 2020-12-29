@@ -11,7 +11,7 @@ from pelicanconf import *
 
 # SITEURL = 'https://YOURUSERNAME.github.io/'
 
-SITEURL = u'https://logout22.github.io/'
+SITEURL = "https://logout22.github.io/"
 RELATIVE_URLS = False
 
 DELETE_OUTPUT_DIRECTORY = False
