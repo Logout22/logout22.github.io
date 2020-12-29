@@ -6,26 +6,32 @@ import datetime
 # THINGS TO CONFIGURE
 # ---------------------------------------------------------------------
 
-AUTHOR = 'Martin Unzner'
-SITENAME = 'Nebensinn blog'
-SITESUBTITLE = ''
-SITEURL = 'https://logout22.github.io/'
-DEFAULT_LANG = 'en'
-DEFAULT_CATEGORY = 'blog'
+AUTHOR = "Martin Unzner"
+SITENAME = "Nebensinn blog"
+SITESUBTITLE = ""
+SITEURL = "https://logout22.github.io/"
+DEFAULT_LANG = "en"
+DEFAULT_CATEGORY = "blog"
 
 
-LANDING_PAGE_ABOUT = {'title': 'Nebensinn blog',
-                      'details': """<p>Hi, I am Martin. On this blog I 
-will post updates on technology 
-that cannot be expressed as source code diffs.</p>"""}
+LANDING_PAGE_ABOUT = {
+    "title": "Nebensinn blog",
+    "details": """<p>Hi, I am Martin. On this blog I
+ will post updates on technology
+ that cannot be expressed as source code diffs.</p>""",
+}
 
 
-PROJECTS = [{'name': 'ugame-tetris', 'url': 'https://github.com/Logout22/ugame-tetris',
-             'description': 'A tetris clone for the uGame10 (very alpha)'},
-             ]
+PROJECTS = [
+    {
+        "name": "ugame-tetris",
+        "url": "https://github.com/Logout22/ugame-tetris",
+        "description": "A tetris clone for the uGame10 (very alpha)",
+    },
+]
 
 
-LINKS = (('Nebensinn home page', 'https://nebensinn.com'),)
+LINKS = (("Nebensinn home page", "https://nebensinn.com"),)
 
 SOCIAL = ()
 
@@ -43,7 +49,7 @@ STATIC_PATHS = ["images"]
 
 PATH = "content"
 
-TIMEZONE = 'Europe/Berlin'
+TIMEZONE = "Europe/Berlin"
 
 # Put as draft content in the future
 WITH_FUTURE_DATES = True
