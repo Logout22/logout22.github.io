@@ -21,9 +21,29 @@ LANDING_PAGE_ABOUT = {
 
 PROJECTS = [
     {
+        "name": "ansible-role-ghost-backup",
+        "url": "https://github.com/Logout22/ansible-role-ghost-backup",
+        "description": "Ansible role to back up a Ghost blog",
+    },
+    {
+        "name": "ansible-role-ghost-restore",
+        "url": "https://github.com/Logout22/ansible-role-ghost-restore",
+        "description": "Ansible role to restore a Ghost blog",
+    },
+    {
+        "name": "rulsof",
+        "url": "https://codeberg.org/Logout/rulsof",
+        "description": "Rust wrapper library for the lsof utility",
+    },
+    {
         "name": "ugame-tetris",
         "url": "https://github.com/Logout22/ugame-tetris",
-        "description": "A tetris clone for the uGame10 (very alpha)",
+        "description": "Tetris clone for the uGame10 (in development)",
+    },
+    {
+        "name": "Linguafranka",
+        "url": "https://github.com/Logout22/linguafranka-python",
+        "description": "Proxy service querying multiple online dictionaries at once (in development)",
     },
 ]
 
