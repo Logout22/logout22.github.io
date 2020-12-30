@@ -31,6 +31,11 @@ PROJECTS = [
         "description": "Ansible role to restore a Ghost blog",
     },
     {
+        "name": "shifting-alternator",
+        "url": "https://codeberg.org/Logout/shifting-alternator",
+        "description": "Test-driven Arduino project for my model rail set",
+    },
+    {
         "name": "rulsof",
         "url": "https://codeberg.org/Logout/rulsof",
         "description": "Rust wrapper library for the lsof utility",
