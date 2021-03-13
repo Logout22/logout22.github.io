@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom"><title>Nebensinn blog</title><link href="https://logout22.github.io/" rel="alternate"></link><link href="https://logout22.github.io/feeds/en.atom.xml" rel="self"></link><id>https://logout22.github.io/</id><updated>2019-06-22T20:00:00+02:00</updated><subtitle></subtitle><entry><title>A sandwich case for uGame</title><link href="https://logout22.github.io/blog/2019/06/22/a-sandwich-case-for-ugame/" rel="alternate"></link><published>2019-06-22T20:00:00+02:00</published><updated>2019-06-22T20:00:00+02:00</updated><author><name>Martin Unzner</name></author><id>tag:logout22.github.io,2019-06-22:/blog/2019/06/22/a-sandwich-case-for-ugame/</id><summary type="html">&lt;p&gt;&lt;strong&gt;tl;dr If you are only interested in how I made my case (haha)
+you can jump to the next section&lt;/strong&gt; &lt;a class="reference internal" href="#required-parts"&gt;Required&amp;nbsp;parts&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;About four months ago I got a &lt;a class="reference external" href="https://hackaday.io/project/27629-game"&gt;uGame10&lt;/a&gt; for my birthday. I had seen a presentation
+on the device at &lt;span class="caps"&gt;FOSDEM&lt;/span&gt; a couple of days before and …&lt;/p&gt;</summary><content type="html">&lt;p&gt;&lt;strong&gt;tl;dr If you are only interested in how I made my case (haha)
+you can jump to the next section&lt;/strong&gt; &lt;a class="reference internal" href="#required-parts"&gt;Required&amp;nbsp;parts&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;About four months ago I got a &lt;a class="reference external" href="https://hackaday.io/project/27629-game"&gt;uGame10&lt;/a&gt; for my birthday. I had seen a presentation
+on the device at &lt;span class="caps"&gt;FOSDEM&lt;/span&gt; a couple of days before and was immediately hooked,
+so I decided to put a wish out to my friends. Thanks again guys!&amp;nbsp;:)&lt;/p&gt;
+&lt;p&gt;When I finally unboxed the chip I was surprised how tiny it was.
+Seeing a device this small, featuring a well-known Nintendo-like
+set of buttons, I was reminded of the small toy alarm clocks
+Nintendo used to make under their brand of &lt;a class="reference external" href="https://en.wikipedia.org/wiki/Nintendo_Mini_Classics"&gt;Nintendo Mini Classics&lt;/a&gt;.
+I had a lot of fun with those mini arcade machines as a child and still
+admire the addictive simplicity with which those games were made. And now I held
+a template for such a machine in my hands, and could develop my very own
+pocket game machine. How&amp;nbsp;exciting!&lt;/p&gt;
+&lt;p&gt;It turned on fine when I connected it to a computer and, after a firmware update,
+it ran all two example programs available on the web just fine. However,
+having a mobile device connected to a wall outlet or a bulky power bank
+all the time kind of defeats the point. Consequently, uGame was always designed
+to run off battery power. uGame&amp;#8217;s inventor, Radomir Dopieralski, recommends
+to solder a specific Nokia phone battery from the 2000s directly
+to the pads on the device and then hot-glue it to the back of the board
+(see &lt;a class="reference external" href="https://github.com/python-ugame/ugame-docs/blob/ad676d121e3c583d1658f54e65a392fbcf29861f/assembly.rst"&gt;uGame manual&lt;/a&gt;).&lt;/p&gt;
+&lt;p&gt;If this sounds dangerous to you: It is. Soldering irons, or worse soldering guns,
+get very hot, and the Lithium, which is what the old battery is made of,
+tends to take heat as an invitation to react with everything in its proximity.
+Also, the contact pads and their insulation were built to a price point,
+and are very thin and brittle. Soldering on them is certainly not easy,
+and it is easy to damage or destroy the insulation, which could have
+all kinds of unintended consequences. But then again,
+Radomir goes to great lengths explaining that the device is a prototype
+for experienced hobbyists and not a childrens&amp;#8217;&amp;nbsp;toy.&lt;/p&gt;
+&lt;p&gt;In addition to the risky way of fixing the battery that I did not want to follow,
+I faced the problem
+that I did not have the specific Nokia battery that was recommended in the manual.
+Hence, none of the case designs available online for 3D printing would have
+worked for me (e.g. by &lt;a class="reference external" href="https://www.thingiverse.com/thing:2971913"&gt;Jovan Maric&lt;/a&gt; or &lt;a class="reference external" href="https://www.thingiverse.com/thing:2797538"&gt;davedarko&lt;/a&gt;).
+I could have bought a used battery online, but you never know
+what state you will receive them in.
+I had another Nokia battery from the era handy which I tried, but I had no
+luck attaching wires to the battery&amp;#8217;s pads&amp;nbsp;either.&lt;/p&gt;
+&lt;p&gt;However, I was able to try if the board worked with a battery at all, and it did.
+I had soldered wires to the uGame, pushed the other end to the battery,
+and the screen was flashing on nice and bright as it did on a wire lead.
+Naturally, the uGame went
+off again when I let go, but after that short experiment I was confident
+that there was a way to make this work, albeit probably not
+with this exact&amp;nbsp;battery.&lt;/p&gt;
+&lt;p&gt;I am a trained computer engineer and I have no idea of materials or 3D printing.
+Even if I asked my friends for help and designed a sophisticated case for &amp;#8220;my&amp;#8221;
+Nokia battery,
+including spring contacts to hold it in place firmly, a small &lt;span class="caps"&gt;PCB&lt;/span&gt;
+to extract the leads, and a snap-in plastic housing for the uGame,
+the case would only fit the one Nokia battery that I own.
+If the battery broke down it would be completely useless.
+Also, I work an unrelated full-time job, and this is not my only hardware project,
+so time is limited to some degree. Thinking along those lines, I found I best
+try something I have some experience with, and came up with a custom
+&amp;#8220;sandwich&amp;#8221; case&amp;nbsp;design.&lt;/p&gt;
+&lt;div class="section" id="required-parts"&gt;
+&lt;h2&gt;Required&amp;nbsp;parts&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;p class="first"&gt;a &lt;a class="reference external" href="https://hackaday.io/project/27629-game"&gt;uGame10&lt;/a&gt; prototype&amp;nbsp;board&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p class="first"&gt;two through-hole printed circuit&amp;nbsp;boards&lt;/p&gt;
+&lt;p&gt;The boards should feature individual soldering points to avoid short circuits
+when attaching the battery. Mounting holes for the cable ties (see below)
+come in handy,&amp;nbsp;too.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p class="first"&gt;a 3.7 volts Lithium battery (e.g. Sony &lt;span class="caps"&gt;US18650V3&lt;/span&gt;) and a matching&amp;nbsp;holder&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p class="first"&gt;some wire, ideally two&amp;nbsp;colours&lt;/p&gt;
+&lt;p&gt;I prefer solid wire, some prefer stranded wire, your choice&amp;nbsp;basically.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p class="first"&gt;about four zip ties to attach the two boards&amp;nbsp;together&lt;/p&gt;
+&lt;p&gt;I would recommend having more handy,
+as those fiddly beasts tend to get lost easly.
+Sometimes you will also need to cut them when
+you tied the wrong things together, unless you are one
+of those Houdinis who can disassemble zip ties without
+breaking&amp;nbsp;them.&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;div class="section" id="assembly"&gt;
+&lt;h2&gt;Assembly&lt;/h2&gt;
+&lt;p&gt;First, mount the battery holder to one of the boards.
+Put it on the side of the board that does not have soldering points on it,
+so that you will later be able to solder its connectors to the board.
+You may need to punch or drill small holes in the board to be able to
+fasten the battery holder properly. Make sure the holder does not shake or wobble
+when you are done: Lithium batteries are quite heavy
+and require solid&amp;nbsp;fastening.&lt;/p&gt;
+&lt;img alt="The PCB mounted in a vice" src="https://logout22.github.io/images/01_pcb.jpg" /&gt;
+&lt;img alt="The PCB mounted in a vice with the battery holder attached to its back" src="https://logout22.github.io/images/02_pcb_holder_back.jpg" /&gt;
+&lt;img alt="The PCB mounted in a vice with the battery holder attached to its front" src="https://logout22.github.io/images/03_pcb_holder_front.jpg" /&gt;
+&lt;p&gt;Now solder the battery holder contacts to the circuit board,
+and attach some wire to the solder joints. I recommend red wire for the
+battery&amp;#8217;s positive end and white for the negative one.
+&lt;strong&gt;Always mind the correct polarity&lt;/strong&gt;:
+If polarity is reversed when connecting
+the battery to the board you may destroy both the battery and the&amp;nbsp;uGame!&lt;/p&gt;
+&lt;img alt="The PCB with the soldered battery holder and wires" src="https://logout22.github.io/images/04_soldered_holder.jpg" /&gt;
+&lt;p&gt;Now, solder the other ends of the wires to the back of your uGame board,
+matching the polarity of the battery,
+and attach the screen to the front of the uGame as described
+in the &lt;a class="reference external" href="https://github.com/python-ugame/ugame-docs/blob/ad676d121e3c583d1658f54e65a392fbcf29861f/assembly.rst"&gt;uGame manual&lt;/a&gt;.
+If you insert the battery now, you should already be able to turn on the
+uGame using the small up/down switch on the side.
+&lt;strong&gt;Again, mind the polarity when inserting the battery into the finished circuit!&lt;/strong&gt;
+After turning on the uGame, the whole setup should look somewhat
+like the picture&amp;nbsp;below.&lt;/p&gt;
+&lt;img alt="The PCB with the soldered battery holder and uGame running" src="https://logout22.github.io/images/05_soldered_ugame.jpg" /&gt;
+&lt;p&gt;For the remaining pictures, I turned the uGame off again, because the bright
+light from the screen can be really disturbing when fiddling with those tiny
+components, but do not worry, it was working all the&amp;nbsp;time.&lt;/p&gt;
+&lt;p&gt;Now you will need the other circuit board and the zip&amp;nbsp;ties.&lt;/p&gt;
+&lt;img alt="The additional components needed to finish the case, neatly arranged" src="https://logout22.github.io/images/06_required_additional_components.jpg" /&gt;
+&lt;p&gt;I know, the arrangement is far from perfect, and I need more training
+before I can attend &lt;a class="reference external" href="https://www.youtube.com/watch?v=QEN5-_93gQg"&gt;Stackenblocken&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;Now comes the fiddly part: Put all cable ties through the holes
+that you need to connect. Try to attach as many mounting holes of the
+uGame to the two boards as you can, and connect both boards with all cable
+ties to make sure the case stays small and compact and the battery
+is properly secured within. I recommend you put the ugame on the side
+of the second board which is not fit with solder points. Even though
+it is not likely to form a short circuit if you have boards with individual
+solder joints, you are on the safe side if there is no metal on the board
+under the uGame&amp;#8217;s back side at&amp;nbsp;all.&lt;/p&gt;
+&lt;img alt="All zip ties pushed through the boards and the uGame, but not zipped" src="https://logout22.github.io/images/07_all_zip_ties.jpg" /&gt;
+&lt;p&gt;Now, carefully close the cable ties, going in small steps of few centimeters
+on each of them in round robin so that you get a somewhat straightly aligned case.
+You may need multiple cable ties to attach them in the correct&amp;nbsp;fashion.&lt;/p&gt;
+&lt;img alt="The finished case from the side" src="https://logout22.github.io/images/08_case_side.jpg" /&gt;
+&lt;img alt="The finished case from the top" src="https://logout22.github.io/images/09_case_top.jpg" /&gt;
+&lt;img alt="Front view of the finished case" src="https://logout22.github.io/images/10_case_front.jpg" /&gt;
+&lt;p&gt;Now, when you connect the finished sandwich to the computer again,
+it should start charging the battery and light the &lt;span class="caps"&gt;CHARGE&lt;/span&gt; indicator &lt;span class="caps"&gt;LED&lt;/span&gt;.&lt;/p&gt;
+&lt;img alt="The running uGame with on the sandwich case with CHARGE LED on" src="https://logout22.github.io/images/11_charging.jpg" /&gt;
+&lt;p&gt;I hope this blog post was somewhat useful to you. If you have any questions
+or remarks feel free to send me a message (see &lt;a class="reference external" href="/about/"&gt;About&lt;/a&gt;).&lt;/p&gt;
+&lt;p&gt;Thanks for&amp;nbsp;reading!&lt;/p&gt;
+&lt;p&gt;P.S.: I read just now, shortly before uploading, that
+uGame has been discontinued in favour of a new board by Adafruit
+called &lt;a class="reference external" href="https://www.adafruit.com/product/4200"&gt;PyBadge&lt;/a&gt; (see &lt;a class="reference external" href="https://hackaday.io/project/27629-game/log/164355-the-last-game"&gt;The Last uGame&lt;/a&gt;). If all of this sounded very tinkery
+to you and scared you off the very interesting field of Python
+on the microcontroller, you may want to try out the Adafruit board instead
+which is certainly more mature.
+Personally, I have no intention of buying one, as I am quite content with my uGame
+(I hope you could tell :)&amp;nbsp;).&lt;/p&gt;
+&lt;/div&gt;
+</content><category term="blog"></category></entry><entry><title>Welcome!</title><link href="https://logout22.github.io/blog/2019/03/24/welcome/" rel="alternate"></link><published>2019-03-24T23:55:00+02:00</published><updated>2019-03-24T23:55:00+02:00</updated><author><name>Martin Unzner</name></author><id>tag:logout22.github.io,2019-03-24:/blog/2019/03/24/welcome/</id><summary type="html">&lt;p&gt;Welcome to my new blog, where I will be posting updates on technology
+that cannot be expressed as source code&amp;nbsp;diffs.&lt;/p&gt;
+&lt;p&gt;I will mostly talk about projects revolving around the retro computers
+that I own, the bulk of which are electronic helper modules
+connecting the old machines to the modern …&lt;/p&gt;</summary><content type="html">&lt;p&gt;Welcome to my new blog, where I will be posting updates on technology
+that cannot be expressed as source code&amp;nbsp;diffs.&lt;/p&gt;
+&lt;p&gt;I will mostly talk about projects revolving around the retro computers
+that I own, the bulk of which are electronic helper modules
+connecting the old machines to the modern ones,
+thereby making my life as an administrator a lot easier.
+Occasionally, I will also present new technology that I acquired
+and tell you why I got it and what I intend to do with&amp;nbsp;it.&lt;/p&gt;
+&lt;p&gt;I hope that these articles will be useful as references for me
+(e.g. in case something breaks and I need to redo it),
+but also help others to build similar things while
+ideally cutting short on the research and avoiding the mistakes that I&amp;nbsp;made.&lt;/p&gt;
+&lt;p&gt;Enjoy!&amp;nbsp;:)&lt;/p&gt;
+</content><category term="blog"></category></entry></feed>
