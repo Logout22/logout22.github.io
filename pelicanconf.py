@@ -41,6 +41,11 @@ PROJECTS = [
         "description": "Rust wrapper library for the lsof utility",
     },
     {
+        "name": "rulsof-c",
+        "url": "https://codeberg.org/Logout/rulsof-c",
+        "description": "C/C++ interface library for rulsof",
+    },
+    {
         "name": "ugame-tetris",
         "url": "https://github.com/Logout22/ugame-tetris",
         "description": "Tetris clone for the uGame10 (in development)",
