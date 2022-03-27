@@ -1,0 +1,26 @@
+name: autorebase
+
+on:
+  schedule:
+    - cron:  '0 7 * * 1,4'
+
+jobs:
+  sync_latest_from_upstream:
+    runs-on: ubuntu-latest
+    name: Sync latest commits from upstream repo
+
+    steps:
+    - name: Checkout target repo
+      uses: actions/checkout@v3
+
+    - name: Sync upstream changes
+      id: sync
+      uses: aormsby/Fork-Sync-With-Upstream-action@v3.2
+      with:
+        target_sync_branch: master
+        target_repo_token: ${{ secrets.GITHUB_TOKEN }}
+        upstream_sync_branch: master
+        upstream_sync_repo: iranzo/blog-o-matic
+        shallow_since: '4 days ago'
+        target_branch_push_args: '--force-with-lease'
+        git_config_pull_rebase: true
