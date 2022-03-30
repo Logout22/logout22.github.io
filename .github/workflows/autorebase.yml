@@ -3,6 +3,7 @@ name: autorebase
 on:
   schedule:
     - cron:  '0 7 * * 1,4'
+  workflow_dispatch:
 
 jobs:
   sync_latest_from_upstream:
