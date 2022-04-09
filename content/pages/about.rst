@@ -12,4 +12,4 @@ My name is Martin. I am a software engineer from Dresden, Germany, Europe,
 and this is my blog. You can find out more about me on
 Github, on this blog, or on my homepage (https://nebensinn.com).
 If you have any questions I will gladly answer your email:
-martin.u@posteo.de.
+blog@nebensinn.com
