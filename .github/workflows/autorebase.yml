@@ -23,5 +23,5 @@ jobs:
         upstream_sync_branch: master
         upstream_sync_repo: iranzo/blog-o-matic
         shallow_since: '4 days ago'
-        target_push_args: '--force-with-lease'
+        target_branch_push_args: '--force-with-lease'
         git_config_pull_rebase: true
