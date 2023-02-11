@@ -30,7 +30,7 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-peru-
 
-    - uses: iranzo/gh-pages-pelican-action@1.0.3
+    - uses: Logout22/gh-pages-pelican-action@master
       env:
         GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
         SOURCE_FOLDER: content
