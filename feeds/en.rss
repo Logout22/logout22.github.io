@@ -1,0 +1,403 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Nebensinn blog</title><link>https://logout22.github.io/</link><description/><atom:link href="https://logout22.github.io/feeds/en.rss" rel="self"/><lastBuildDate>Sun, 10 Apr 2022 19:00:00 +0200</lastBuildDate><item><title>Fill empty drive space in Xenix</title><link>https://logout22.github.io/blog/2022/04/10/fill-empty-drive-space-in-xenix/</link><description>&lt;p&gt;A couple of months ago, &lt;a class="reference external" href="https://twitter.com/blitzclone"&gt;&amp;#64;blitzclone&lt;/a&gt; and I
+installed Xenix on one of my vintage machines. He documented the process in
+&lt;a class="reference external" href="https://twitter.com/blitzclone/status/1481698790583279619"&gt;a somewhat amusing thread on Twitter&lt;/a&gt;.
+While installing and using Xenix is quite a hassle if you are used to modern Unix systems,
+I find it impressive what &lt;span class="caps"&gt;SCO&lt;/span&gt; and Microsoft were able to achieve with the very primitive
+hardware back in the day (remember, on those systems,
+&lt;span class="caps"&gt;RAM&lt;/span&gt; is still measured in Kilobytes, and there is not even a proper &lt;span class="caps"&gt;MMU&lt;/span&gt;).&lt;/p&gt;
+&lt;p&gt;Still, Xenix never had a chance to succeed in the market: &amp;#8220;Serious&amp;#8221; mainframes ran more versatile Unix distributions,
+usually specific to their vendor, whereas PCs back then often did not meet the high requirements.
+Many of them were still sold without a hard drive, which is a vital thing to have for Unix System V
+and thereby also for Xenix. As we know today, Microsoft decided to focus on &lt;span class="caps"&gt;DOS&lt;/span&gt; development instead,
+and introduced graphical shells for that &lt;span class="caps"&gt;OS&lt;/span&gt; called Windows (you may have heard of that&amp;nbsp;product).&lt;/p&gt;
+&lt;p&gt;Nevertheless, Xenix was, for a short period of time, the cheapest and hence most installed Unix around.
+Then &lt;span class="caps"&gt;BSD&lt;/span&gt; was open-sourced, and Linux came into being, and Xenix soon faded out of the public eye.
+The operating system remained fairly common in its niche of point of sales solutions and on-site controller networks
+for some time. Until a couple of years ago, the last thing to be heard of Xenix was the occasional failing system,
+tucked away somewhere and subsequently forgotten, leaving their administrators hectically searching for replacement
+parts or new solutions. Among those surprised companies was our trustily disorganized
+&lt;a class="reference external" href="https://www.heise.de/newsticker/meldung/Wenn-Computer-Oldies-nicht-mehr-wollen-Update-135968.html"&gt;German Railway&lt;/a&gt;.
+These days, though, I guess all productive Xenix system have either been virtualized or&amp;nbsp;decommissioned.&lt;/p&gt;
+&lt;p&gt;In this article, however, I would like to leave history aside and
+focus on my getting to know Xenix and talk about the experience of programming on an old Unix.
+If you would like to know more about Xenix itself, have a look at
+the &lt;a class="reference external" href="https://gunkies.org/wiki/Xenix"&gt;Computer History Wiki&amp;#8217;s&lt;/a&gt; page on the subject,
+which details the various versions of Xenix and quirks&amp;nbsp;thereof.&lt;/p&gt;
+&lt;p&gt;I will also not go into further
+details here explaining how exactly we got Xenix to work,
+as that would probably warrant at least one
+separate article. You may want to have a look at &amp;#8220;Fun with virtualization&amp;#8221;, where you can find a whole
+&lt;a class="reference external" href="https://virtuallyfun.com/wordpress/category/xenix/"&gt;article series&lt;/a&gt; about installing and configuring&amp;nbsp;Xenix.&lt;/p&gt;
+&lt;div class="section" id="motivation"&gt;
+&lt;h2&gt;Motivation&lt;/h2&gt;
+&lt;p&gt;After I was done with the installation, I created a backup of the hard drive in the computer,
+largely because I was afraid that I would break the system and then have to start the whole procedure again from scratch.
+First, I connected a Raspberry Pi to the machine, using a null modem cable and a &lt;span class="caps"&gt;USB&lt;/span&gt;-to-serial adapter
+on the minicomputer.
+I went on to fork &lt;span class="caps"&gt;ELKS&lt;/span&gt;, a Linux kernel derivative designed to support vintage computers from the original &lt;span class="caps"&gt;IBM&lt;/span&gt; &lt;span class="caps"&gt;PC&lt;/span&gt; onwards.
+You can find my fork and the changes I made on &lt;a class="reference external" href="https://github.com/Logout22/elks/commits/xenix"&gt;GitHub&lt;/a&gt;.
+Then, I used a Gotek virtual floppy drive with a custom-built image of my version of &lt;span class="caps"&gt;ELKS&lt;/span&gt;,
+and some scripts on the Raspberry Pi, to create a hard disk image file via &lt;span class="caps"&gt;SLIRP&lt;/span&gt; and &lt;span class="caps"&gt;FTP&lt;/span&gt;.
+I have put the scripts in my &lt;span class="caps"&gt;ELKS&lt;/span&gt; repository as well, in case you are wondering how exactly that&amp;nbsp;worked.&lt;/p&gt;
+&lt;p&gt;When I analyzed the hard-drive dump using the &lt;tt class="docutils literal"&gt;strings&lt;/tt&gt; command on Linux, in the hopes of finding the hello world program
+that Julian and I had written, I could still see some plain-text fragments of the previous owner&amp;#8217;s data, e.g. letters
+that he must have written on the previously installed &lt;span class="caps"&gt;DOS&lt;/span&gt; system.
+I wanted to clean them up, out of fairness, but also because I thought that should be a simple exercise to get to know
+software development on old Unix. Also, as far as I could tell, Xenix has dd, but no /dev/zero device,
+so I would have to write the filler program myself, in plain old K&amp;amp;R&amp;nbsp;C.&lt;/p&gt;
+&lt;p&gt;To better explain the problems that I faced despite the simple task, we will go over the source code piece by piece.
+The complete source code can be found on &lt;a class="reference external" href="https://codeberg.org/Logout/fill-space"&gt;Codeberg&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;In the sections that follow, I will assume that you have some basic knowledge of the modern C language (i.e. &lt;span class="caps"&gt;ANSI&lt;/span&gt; C and&amp;nbsp;beyond).&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="section" id="the-program"&gt;
+&lt;h2&gt;The&amp;nbsp;program&lt;/h2&gt;
+&lt;p&gt;To start off, I needed to store the data (i.e. zeroes) that I wanted to write to disk somewhere.
+I assumed that old compilers would not reserve very high amounts of stack space (especially on a 286 with its weird segmentation logic),
+so I declared my zero buffer&amp;nbsp;globally:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="kt"&gt;char&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;zero_buffer&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;BLOCK_SIZE&lt;/span&gt;&lt;span class="p"&gt;];&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;By the way, all constants, like BLOCK_SIZE here, need to be macros declared using #define. That may seem strange
+to you if you are used to modern C++ development for instance, but in C, const values cannot be used for array bounds
+and other statically defined values because they are not, by definition, available at compile&amp;nbsp;time.&lt;/p&gt;
+&lt;p&gt;While that may take some time to get used to and look a bit ugly, it is still more or less readable code.
+What really killed me is the function declaration syntax of ancient&amp;nbsp;C:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="kt"&gt;void&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nf"&gt;main&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;argc&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="n"&gt;argv&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="kt"&gt;int&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;argc&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="kt"&gt;char&lt;/span&gt;&lt;span class="o"&gt;**&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;argv&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="p"&gt;{&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;Why did Kernighan and Ritchie (&lt;span class="caps"&gt;RIP&lt;/span&gt;) have to do it like that? I do not get that. From what I read, it was simply
+their convention, and the so-called C++-style declaration which is common nowadays was only introduced with the later &lt;span class="caps"&gt;ANSI&lt;/span&gt; C.
+But as far as I can see, none of the languages that inspired C, neither &lt;span class="caps"&gt;ALGOL&lt;/span&gt; nor &lt;span class="caps"&gt;BCPL&lt;/span&gt; for example,
+have such a weird syntax to declare their function headers. Did they simply like it better that way?
+Was it a limitation of the contemporary compilers? If you know more about this, please send me a&amp;nbsp;message!&lt;/p&gt;
+&lt;p&gt;Something that I already knew, on the other hand, but which also annoys me, is that
+all variables must be declared at the beginning of the function, or you will simply get a syntax error.
+So here they come,&amp;nbsp;fanfares!&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="kt"&gt;FILE&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;filler&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nb"&gt;NULL&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="kt"&gt;unsigned&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="kt"&gt;long&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;blocks_written&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;blocks_per_iteration&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="kt"&gt;unsigned&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="kt"&gt;long&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;chunk_count&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;remaining_blocks&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="kt"&gt;int&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;j&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="kt"&gt;char&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;confirm&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;As a matter of fact, no one knows at this point what all of these will be for, and no one cares.
+If anything, this convention is an invitation to leave half of the variables uninitialized,
+to give them all single-letter names that are easy to remember further down, and to reuse them wherever you can.
+This suddenly gives you a hint why so many programming anti-patterns came into existence originally.
+I understand that compilers back then were fairly limited, but I cannot imagine that it would have been impossible
+to add a separate pass that searches for all declarations and reserves the required heap space.
+Here, again, one can look at other contemporary languages, like Pascal or &lt;span class="caps"&gt;BCPL&lt;/span&gt;, that did not declare everything&amp;nbsp;upfront.&lt;/p&gt;
+&lt;p&gt;Next, we do some input value checks. Returning from main() is not well-defined before C99 as far as I know, so
+I opted to use the exit() function to return control flow, which thankfully&amp;nbsp;worked:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;if&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;argc&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;&amp;lt;&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="mi"&gt;2&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="n"&gt;printf&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;Please supply a block count target.&lt;/span&gt;&lt;span class="se"&gt;\n&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="n"&gt;exit&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;memset() and atol() also existed, which was a&amp;nbsp;plus!&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;memset&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;zero_buffer&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;BLOCK_SIZE&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+&lt;span class="n"&gt;remaining_blocks&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;atol&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;argv&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;]);&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;Next, we are looking at the progress indicator. Such a mechanism is useful to detect hangs in general,
+but in this particular case, the system is also shared
+through the Raspberry Pi gateway that I mentioned earlier.
+Logging in from a different user still gives you the same serial port, so
+producing some output regularly tells the new user that the serial terminal is still&amp;nbsp;busy.&lt;/p&gt;
+&lt;p&gt;My first approach was to use &lt;span class="caps"&gt;ANSI&lt;/span&gt; characters for a sort of interactive progress bar,
+and organize the work in threads:
+One for progress monitoring and one for writing.
+This idea did not come to fruition because there was no reliable way to wait for a certain time on this system:
+There was no sleep() defined in the standard library, and when
+I tried select() without sockets, the system call did not wait as I had&amp;nbsp;expected.&lt;/p&gt;
+&lt;p&gt;As that approach did not work out, I decided
+to split the data to be written into larger chunks, and display a short line indicating progress whenever
+one of those blocks was&amp;nbsp;completed.&lt;/p&gt;
+&lt;p&gt;If you think about it, it also does not really make sense to use threads on a single-core machine.
+Still, it would have been a neat demonstration of Xenix&amp;#8217; scheduling capabilities.
+Maybe I will get around to it in a future&amp;nbsp;project.&lt;/p&gt;
+&lt;p&gt;While composing the progress line, I realized that printf did not expect more than one parameter to substitute,
+and only printed garbage for the second one. I am pretty sure that this is a toolchain bug,
+but I would not rule out that early versions of C simply did not iterate further. Hence, e.g. the debug output
+in the end looks like&amp;nbsp;this:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;printf&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;Wrote %u blocks, &amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;blocks_written&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+&lt;span class="n"&gt;printf&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;%u remaining&lt;/span&gt;&lt;span class="se"&gt;\n&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;remaining_blocks&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;When trying to compute the necessary data ratios, I discovered the worst issue of all:
+Division on the required numeric range was broken! I suppose it has to do with 16-bit arithmetic somehow,
+but ultimately I have no idea why; please enlighten me if you do! In the end, I just let the computer count
+how often one integer fit into the other, like a schoolchild.
+Thinking about how slow division could be on old machines like the 286, though,
+my method is probably more efficient than one might think.&amp;nbsp;;)&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;for&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;&amp;lt;&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;remaining_blocks&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="o"&gt;++&lt;/span&gt;&lt;span class="n"&gt;chunk_count&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;+=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;CHUNK_SIZE&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;The scanf() function was garbage as well, but to be honest, I never really got the hang of that one anyway.
+Here, though, not even the extremely basic examples from my old C book for &lt;span class="caps"&gt;DOS&lt;/span&gt; worked.
+In the end, I resorted to plain &lt;span class="caps"&gt;UNIX&lt;/span&gt; read() to get user&amp;nbsp;input:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;printf&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;OK?&lt;/span&gt;&lt;span class="se"&gt;\n&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+&lt;span class="n"&gt;read&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="n"&gt;confirm&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+&lt;span class="k"&gt;if&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;confirm&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;!=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="sc"&gt;&amp;#39;y&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="n"&gt;exit&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;I would have loved to get the input from the same line, i.e. drop the &lt;tt class="docutils literal"&gt;\n&lt;/tt&gt; from the printf() above,
+but I did not find a way to flush the output buffer; no flush function to be seen anywhere in the&amp;nbsp;docs!&lt;/p&gt;
+&lt;p&gt;At that point, I had run into so many obstacles already that I decided not to care if my confirmation looked pretty.
+It was only there, after all, because I had noticed the division bug I mentioned earlier just floating by
+when an earlier version of this program was already running.
+I consequently decided to add a confirmation as a sanity check, in case anything else went&amp;nbsp;haywire.&lt;/p&gt;
+&lt;p&gt;Now, we have arrived at the main loop, which is at the heart of the&amp;nbsp;program:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;blocks_written&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="n"&gt;blocks_per_iteration&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;CHUNK_SIZE&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+
+&lt;span class="n"&gt;filler&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;fopen&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;FILENAME&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s"&gt;&amp;quot;w&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+&lt;span class="k"&gt;for&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;&amp;lt;&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;chunk_count&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;++&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="k"&gt;if&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;remaining_blocks&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;&amp;lt;&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;CHUNK_SIZE&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;
+&lt;span class="w"&gt;        &lt;/span&gt;&lt;span class="n"&gt;blocks_per_iteration&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;remaining_blocks&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="k"&gt;for&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;j&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;j&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;&amp;lt;&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;blocks_per_iteration&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;++&lt;/span&gt;&lt;span class="n"&gt;j&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;
+&lt;span class="w"&gt;        &lt;/span&gt;&lt;span class="n"&gt;fwrite&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;zero_buffer&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;BLOCK_SIZE&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;filler&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="n"&gt;blocks_written&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;+=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;blocks_per_iteration&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="n"&gt;remaining_blocks&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;-=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;blocks_per_iteration&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="n"&gt;printf&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;Wrote %u blocks, &amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;blocks_written&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="n"&gt;printf&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;%u remaining&lt;/span&gt;&lt;span class="se"&gt;\n&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;remaining_blocks&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;As you can see, we are using a very basic algorithm.
+You may have noticed that error handling on the fopen / fwrite / fclose / unlink system calls is missing.
+I would leave that as an exercise for the enthusiastic reader.
+Adding error handling should be easy if you look at
+the respective function reference pages in the &lt;a class="reference external" href="http://bitsavers.trailing-edge.com/pdf/att/3b1/999-801-312IS_ATT_UNIX_PC_System_V_Users_Manual_Volume_1.pdf"&gt;&lt;span class="caps"&gt;UNIX&lt;/span&gt; System V manual&lt;/a&gt;.&amp;nbsp;;)&lt;/p&gt;
+&lt;p&gt;The &lt;tt class="docutils literal"&gt;if&lt;/tt&gt; statement which caps &lt;tt class="docutils literal"&gt;blocks_per_iteration&lt;/tt&gt; is necessary for the last chunk,
+where there are fewer blocks remaining than one chunk size.
+Luckily, my hand-crafted integer division seems to round up &lt;tt class="docutils literal"&gt;chunk_count&lt;/tt&gt; in that case,
+so no correction required&amp;nbsp;there.&lt;/p&gt;
+&lt;p&gt;I was not sure how long each of these operations would take, so I added more debug&amp;nbsp;output:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;printf&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;Done, closing file.&lt;/span&gt;&lt;span class="se"&gt;\n&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+&lt;span class="n"&gt;fclose&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;filler&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+&lt;span class="n"&gt;printf&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;Deleting file...&lt;/span&gt;&lt;span class="se"&gt;\n&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+&lt;span class="n"&gt;unlink&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;FILENAME&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;Finally, we are&amp;nbsp;done:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;printf&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;Done, your hard drive should be clean now. :)&lt;/span&gt;&lt;span class="se"&gt;\n&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class="section" id="did-it-work"&gt;
+&lt;h2&gt;Did it&amp;nbsp;work?&lt;/h2&gt;
+&lt;p&gt;When I finally tried the program, it ran into a &amp;#8220;no free space&amp;#8221; error a lot earlier than &lt;tt class="docutils literal"&gt;df&lt;/tt&gt;
+had previously indicated.
+Apparently, the hint from the &lt;a class="reference external" href="http://www.nj7p.org/Manuals/PDFs/Intel/174389-001.pdf"&gt;Xenix System Administrator&amp;#8217;s guide&lt;/a&gt; that Xenix needs at least 15 % (!)
+of free space is a hard requirement in practice.
+In the end, I had to kill the program using the Ctrl+\ hot&amp;nbsp;key.&lt;/p&gt;
+&lt;p&gt;Ironically, the data was still there when I ran &amp;#8216;strings&amp;#8217; on a subsequently created hard drive image,
+but again, I could not find my source code.
+I have no idea how Xenix organizes its data storage, but it must be very efficient!
+Well, except for all the available space that is unusable, but you know, something&amp;#8217;s always gotta give.&amp;nbsp;:D&lt;/p&gt;
+&lt;p&gt;I ended up swallowing the ultimate bitter pill:
+Using the &lt;span class="caps"&gt;ELKS&lt;/span&gt; floppy, I overwrote all data on the hard drive using classic dd, and subsequently reinstalled Xenix.
+On a positive note, the installation was a lot easier the second time, and I got far more software to work than before.
+And, naturally, I created a (clean) full disk backup immediately after I was&amp;nbsp;done.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="section" id="what-comes-next"&gt;
+&lt;h2&gt;What comes&amp;nbsp;next?&lt;/h2&gt;
+&lt;p&gt;As that was no success at all, I should look towards other endeavours regarding Linux&amp;#8217; grandpa.
+A simple history function for the shell would be great, maybe even something like a complete command line processor.
+Good, usable shells, like the Korn shell, are limited to Xenix 386, unfortunately, likely due to memory requirements.
+The supplied C shell supports some rudimentary history in the form of reusable variables, but that is not really what I&amp;nbsp;want.&lt;/p&gt;
+&lt;p&gt;Some very basic history in the modern sense, with support for the cursor keys, should not be too hard to do, right?
+On the other hand, that is what I said about this project as well, so let&amp;#8217;s see&amp;nbsp;;)&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="section" id="helpful-resources"&gt;
+&lt;h2&gt;Helpful&amp;nbsp;resources&lt;/h2&gt;
+&lt;p&gt;These resources helped me a lot to write anything usable for Xenix.
+I hope that they will be useful for you, too, should you want to try your luck on this ancient &lt;span class="caps"&gt;UNIX&lt;/span&gt;:&lt;/p&gt;
+&lt;ul class="simple"&gt;
+&lt;li&gt;&lt;a class="reference external" href="http://www.nj7p.org/Manuals/PDFs/Intel/174389-001.pdf"&gt;Xenix System Administrator&amp;#8217;s&amp;nbsp;guide&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;The original &lt;a class="reference external" href="http://bitsavers.trailing-edge.com/pdf/att/3b1/999-801-312IS_ATT_UNIX_PC_System_V_Users_Manual_Volume_1.pdf"&gt;&lt;span class="caps"&gt;UNIX&lt;/span&gt; System V&amp;nbsp;manual&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Beware: Both documents trigger a warning in current browsers because they are served via insecure &lt;span class="caps"&gt;HTTP&lt;/span&gt;! From what I can see, they should be safe to open,&amp;nbsp;though.&lt;/p&gt;
+&lt;ul class="simple"&gt;
+&lt;li&gt;&lt;a class="reference external" href="https://github.com/mrquincle/ancient-c-compilers"&gt;Ancient C compilers repo&lt;/a&gt;, especially the C files from the first &lt;span class="caps"&gt;UNIX&lt;/span&gt; source code, for getting to know the quirky early C syntax
+and reading some example code on how to use the early versions of the &lt;span class="caps"&gt;UNIX&lt;/span&gt; system&amp;nbsp;calls&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">Martin Unzner</dc:creator><pubDate>Sun, 10 Apr 2022 19:00:00 +0200</pubDate><guid>tag:logout22.github.io,2022-04-10:/blog/2022/04/10/fill-empty-drive-space-in-xenix/</guid><category>blog</category></item><item><title>My article in LOAD magazine</title><link>https://logout22.github.io/blog/2022/03/02/my-article-in-load-magazine/</link><description>&lt;p&gt;Just a quick note to pass the time until the next full article:
+I made a contribution to last year&amp;#8217;s &lt;span class="caps"&gt;LOAD&lt;/span&gt; magazine.
+You can find the download link for issue 7&amp;nbsp;here:&lt;/p&gt;
+&lt;p&gt;&lt;a class="reference external" href="https://www.classic-computing.org/load-online/"&gt;https://www.classic-computing.org/load-online/&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;My article is called &amp;#8220;Do it yourself 80486&amp;#8221; and describes a retro
+machine that I assembled for that occasion (and kept afterwards).
+I finished the project about a year ago, but the magazine was not publicly
+available before mid of last&amp;nbsp;year.&lt;/p&gt;
+&lt;p&gt;Unfortunately, the article is in German and not very detailed due to space constraints.
+If you are interested in the topic, though, I can provide you with more information.
+Just send me an&amp;nbsp;email.&lt;/p&gt;
+&lt;p&gt;An update should be coming soon (sooner than 2.5 years for sure ;)&amp;nbsp;).&lt;/p&gt;
+&lt;p&gt;See you&amp;nbsp;then!&lt;/p&gt;
+</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">Martin Unzner</dc:creator><pubDate>Wed, 02 Mar 2022 21:00:00 +0100</pubDate><guid>tag:logout22.github.io,2022-03-02:/blog/2022/03/02/my-article-in-load-magazine/</guid><category>blog</category></item><item><title>A sandwich case for uGame</title><link>https://logout22.github.io/blog/2019/06/22/a-sandwich-case-for-ugame/</link><description>&lt;p&gt;&lt;strong&gt;tl;dr If you are only interested in how I made my case (haha)
+you can jump to the next section&lt;/strong&gt; &lt;a class="reference internal" href="#required-parts"&gt;Required&amp;nbsp;parts&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;About four months ago I got a &lt;a class="reference external" href="https://hackaday.io/project/27629-game"&gt;uGame10&lt;/a&gt; for my birthday. I had seen a presentation
+on the device at &lt;span class="caps"&gt;FOSDEM&lt;/span&gt; a couple of days before and was immediately hooked,
+so I decided to put a wish out to my friends. Thanks again guys!&amp;nbsp;:)&lt;/p&gt;
+&lt;p&gt;When I finally unboxed the chip I was surprised how tiny it was.
+Seeing a device this small, featuring a well-known Nintendo-like
+set of buttons, I was reminded of the small toy alarm clocks
+Nintendo used to make under their brand of &lt;a class="reference external" href="https://en.wikipedia.org/wiki/Nintendo_Mini_Classics"&gt;Nintendo Mini Classics&lt;/a&gt;.
+I had a lot of fun with those mini arcade machines as a child and still
+admire the addictive simplicity with which those games were made. And now I held
+a template for such a machine in my hands, and could develop my very own
+pocket game machine. How&amp;nbsp;exciting!&lt;/p&gt;
+&lt;p&gt;It turned on fine when I connected it to a computer and, after a firmware update,
+it ran all two example programs available on the web just fine. However,
+having a mobile device connected to a wall outlet or a bulky power bank
+all the time kind of defeats the point. Consequently, uGame was always designed
+to run off battery power. uGame&amp;#8217;s inventor, Radomir Dopieralski, recommends
+to solder a specific Nokia phone battery from the 2000s directly
+to the pads on the device and then hot-glue it to the back of the board
+(see &lt;a class="reference external" href="https://github.com/python-ugame/ugame-docs/blob/ad676d121e3c583d1658f54e65a392fbcf29861f/assembly.rst"&gt;uGame manual&lt;/a&gt;).&lt;/p&gt;
+&lt;p&gt;If this sounds dangerous to you: It is. Soldering irons, or worse soldering guns,
+get very hot, and the Lithium, which is what the old battery is made of,
+tends to take heat as an invitation to react with everything in its proximity.
+Also, the contact pads and their insulation were built to a price point,
+and are very thin and brittle. Soldering on them is certainly not easy,
+and it is easy to damage or destroy the insulation, which could have
+all kinds of unintended consequences. But then again,
+Radomir goes to great lengths explaining that the device is a prototype
+for experienced hobbyists and not a childrens&amp;#8217;&amp;nbsp;toy.&lt;/p&gt;
+&lt;p&gt;In addition to the risky way of fixing the battery that I did not want to follow,
+I faced the problem
+that I did not have the specific Nokia battery that was recommended in the manual.
+Hence, none of the case designs available online for 3D printing would have
+worked for me (e.g. by &lt;a class="reference external" href="https://www.thingiverse.com/thing:2971913"&gt;Jovan Maric&lt;/a&gt; or &lt;a class="reference external" href="https://www.thingiverse.com/thing:2797538"&gt;davedarko&lt;/a&gt;).
+I could have bought a used battery online, but you never know
+what state you will receive them in.
+I had another Nokia battery from the era handy which I tried, but I had no
+luck attaching wires to the battery&amp;#8217;s pads&amp;nbsp;either.&lt;/p&gt;
+&lt;p&gt;However, I was able to try if the board worked with a battery at all, and it did.
+I had soldered wires to the uGame, pushed the other end to the battery,
+and the screen was flashing on nice and bright as it did on a wire lead.
+Naturally, the uGame went
+off again when I let go, but after that short experiment I was confident
+that there was a way to make this work, albeit probably not
+with this exact&amp;nbsp;battery.&lt;/p&gt;
+&lt;p&gt;I am a trained computer engineer and I have no idea of materials or 3D printing.
+Even if I asked my friends for help and designed a sophisticated case for &amp;#8220;my&amp;#8221;
+Nokia battery,
+including spring contacts to hold it in place firmly, a small &lt;span class="caps"&gt;PCB&lt;/span&gt;
+to extract the leads, and a snap-in plastic housing for the uGame,
+the case would only fit the one Nokia battery that I own.
+If the battery broke down it would be completely useless.
+Also, I work an unrelated full-time job, and this is not my only hardware project,
+so time is limited to some degree. Thinking along those lines, I found I best
+try something I have some experience with, and came up with a custom
+&amp;#8220;sandwich&amp;#8221; case&amp;nbsp;design.&lt;/p&gt;
+&lt;div class="section" id="required-parts"&gt;
+&lt;h2&gt;Required&amp;nbsp;parts&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;p class="first"&gt;a &lt;a class="reference external" href="https://hackaday.io/project/27629-game"&gt;uGame10&lt;/a&gt; prototype&amp;nbsp;board&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p class="first"&gt;two through-hole printed circuit&amp;nbsp;boards&lt;/p&gt;
+&lt;p&gt;The boards should feature individual soldering points to avoid short circuits
+when attaching the battery. Mounting holes for the cable ties (see below)
+come in handy,&amp;nbsp;too.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p class="first"&gt;a 3.7 volts Lithium battery (e.g. Sony &lt;span class="caps"&gt;US18650V3&lt;/span&gt;) and a matching&amp;nbsp;holder&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p class="first"&gt;some wire, ideally two&amp;nbsp;colours&lt;/p&gt;
+&lt;p&gt;I prefer solid wire, some prefer stranded wire, your choice&amp;nbsp;basically.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p class="first"&gt;about four zip ties to attach the two boards&amp;nbsp;together&lt;/p&gt;
+&lt;p&gt;I would recommend having more handy,
+as those fiddly beasts tend to get lost easly.
+Sometimes you will also need to cut them when
+you tied the wrong things together, unless you are one
+of those Houdinis who can disassemble zip ties without
+breaking&amp;nbsp;them.&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;div class="section" id="assembly"&gt;
+&lt;h2&gt;Assembly&lt;/h2&gt;
+&lt;p&gt;First, mount the battery holder to one of the boards.
+Put it on the side of the board that does not have soldering points on it,
+so that you will later be able to solder its connectors to the board.
+You may need to punch or drill small holes in the board to be able to
+fasten the battery holder properly. Make sure the holder does not shake or wobble
+when you are done: Lithium batteries are quite heavy
+and require solid&amp;nbsp;fastening.&lt;/p&gt;
+&lt;img alt="The PCB mounted in a vice" src="https://logout22.github.io/images/01_pcb.jpg" /&gt;
+&lt;img alt="The PCB mounted in a vice with the battery holder attached to its back" src="https://logout22.github.io/images/02_pcb_holder_back.jpg" /&gt;
+&lt;img alt="The PCB mounted in a vice with the battery holder attached to its front" src="https://logout22.github.io/images/03_pcb_holder_front.jpg" /&gt;
+&lt;p&gt;Now solder the battery holder contacts to the circuit board,
+and attach some wire to the solder joints. I recommend red wire for the
+battery&amp;#8217;s positive end and white for the negative one.
+&lt;strong&gt;Always mind the correct polarity&lt;/strong&gt;:
+If polarity is reversed when connecting
+the battery to the board you may destroy both the battery and the&amp;nbsp;uGame!&lt;/p&gt;
+&lt;img alt="The PCB with the soldered battery holder and wires" src="https://logout22.github.io/images/04_soldered_holder.jpg" /&gt;
+&lt;p&gt;Now, solder the other ends of the wires to the back of your uGame board,
+matching the polarity of the battery,
+and attach the screen to the front of the uGame as described
+in the &lt;a class="reference external" href="https://github.com/python-ugame/ugame-docs/blob/ad676d121e3c583d1658f54e65a392fbcf29861f/assembly.rst"&gt;uGame manual&lt;/a&gt;.
+If you insert the battery now, you should already be able to turn on the
+uGame using the small up/down switch on the side.
+&lt;strong&gt;Again, mind the polarity when inserting the battery into the finished circuit!&lt;/strong&gt;
+After turning on the uGame, the whole setup should look somewhat
+like the picture&amp;nbsp;below.&lt;/p&gt;
+&lt;img alt="The PCB with the soldered battery holder and uGame running" src="https://logout22.github.io/images/05_soldered_ugame.jpg" /&gt;
+&lt;p&gt;For the remaining pictures, I turned the uGame off again, because the bright
+light from the screen can be really disturbing when fiddling with those tiny
+components, but do not worry, it was working all the&amp;nbsp;time.&lt;/p&gt;
+&lt;p&gt;Now you will need the other circuit board and the zip&amp;nbsp;ties.&lt;/p&gt;
+&lt;img alt="The additional components needed to finish the case, neatly arranged" src="https://logout22.github.io/images/06_required_additional_components.jpg" /&gt;
+&lt;p&gt;I know, the arrangement is far from perfect, and I need more training
+before I can attend &lt;a class="reference external" href="https://www.youtube.com/watch?v=QEN5-_93gQg"&gt;Stackenblocken&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;Now comes the fiddly part: Put all cable ties through the holes
+that you need to connect. Try to attach as many mounting holes of the
+uGame to the two boards as you can, and connect both boards with all cable
+ties to make sure the case stays small and compact and the battery
+is properly secured within. I recommend you put the ugame on the side
+of the second board which is not fit with solder points. Even though
+it is not likely to form a short circuit if you have boards with individual
+solder joints, you are on the safe side if there is no metal on the board
+under the uGame&amp;#8217;s back side at&amp;nbsp;all.&lt;/p&gt;
+&lt;img alt="All zip ties pushed through the boards and the uGame, but not zipped" src="https://logout22.github.io/images/07_all_zip_ties.jpg" /&gt;
+&lt;p&gt;Now, carefully close the cable ties, going in small steps of few centimeters
+on each of them in round robin so that you get a somewhat straightly aligned case.
+You may need multiple cable ties to attach them in the correct&amp;nbsp;fashion.&lt;/p&gt;
+&lt;img alt="The finished case from the side" src="https://logout22.github.io/images/08_case_side.jpg" /&gt;
+&lt;img alt="The finished case from the top" src="https://logout22.github.io/images/09_case_top.jpg" /&gt;
+&lt;img alt="Front view of the finished case" src="https://logout22.github.io/images/10_case_front.jpg" /&gt;
+&lt;p&gt;Now, when you connect the finished sandwich to the computer again,
+it should start charging the battery and light the &lt;span class="caps"&gt;CHARGE&lt;/span&gt; indicator &lt;span class="caps"&gt;LED&lt;/span&gt;.&lt;/p&gt;
+&lt;img alt="The running uGame with on the sandwich case with CHARGE LED on" src="https://logout22.github.io/images/11_charging.jpg" /&gt;
+&lt;p&gt;I hope this blog post was somewhat useful to you. If you have any questions
+or remarks feel free to send me a message (see &lt;a class="reference external" href="/about/"&gt;About&lt;/a&gt;).&lt;/p&gt;
+&lt;p&gt;Thanks for&amp;nbsp;reading!&lt;/p&gt;
+&lt;p&gt;P.S.: I read just now, shortly before uploading, that
+uGame has been discontinued in favour of a new board by Adafruit
+called &lt;a class="reference external" href="https://www.adafruit.com/product/4200"&gt;PyBadge&lt;/a&gt; (see &lt;a class="reference external" href="https://hackaday.io/project/27629-game/log/164355-the-last-game"&gt;The Last uGame&lt;/a&gt;). If all of this sounded very tinkery
+to you and scared you off the very interesting field of Python
+on the microcontroller, you may want to try out the Adafruit board instead
+which is certainly more mature.
+Personally, I have no intention of buying one, as I am quite content with my uGame
+(I hope you could tell :)&amp;nbsp;).&lt;/p&gt;
+&lt;/div&gt;
+</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">Martin Unzner</dc:creator><pubDate>Sat, 22 Jun 2019 20:00:00 +0200</pubDate><guid>tag:logout22.github.io,2019-06-22:/blog/2019/06/22/a-sandwich-case-for-ugame/</guid><category>blog</category></item><item><title>Welcome!</title><link>https://logout22.github.io/blog/2019/03/24/welcome/</link><description>&lt;p&gt;Welcome to my new blog, where I will be posting updates on technology
+that cannot be expressed as source code&amp;nbsp;diffs.&lt;/p&gt;
+&lt;p&gt;I will mostly talk about projects revolving around the retro computers
+that I own, the bulk of which are electronic helper modules
+connecting the old machines to the modern ones,
+thereby making my life as an administrator a lot easier.
+Occasionally, I will also present new technology that I acquired
+and tell you why I got it and what I intend to do with&amp;nbsp;it.&lt;/p&gt;
+&lt;p&gt;I hope that these articles will be useful as references for me
+(e.g. in case something breaks and I need to redo it),
+but also help others to build similar things while
+ideally cutting short on the research and avoiding the mistakes that I&amp;nbsp;made.&lt;/p&gt;
+&lt;p&gt;Enjoy!&amp;nbsp;:)&lt;/p&gt;
+</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">Martin Unzner</dc:creator><pubDate>Sun, 24 Mar 2019 23:55:00 +0200</pubDate><guid>tag:logout22.github.io,2019-03-24:/blog/2019/03/24/welcome/</guid><category>blog</category></item></channel></rss>
